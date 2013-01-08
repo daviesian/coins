@@ -32,6 +32,7 @@
 
    {:db/id (d/tempid :db.part/db)
     :db/ident :coin/uncertainty
+    :db/isComponent true
     :db/valueType :db.type/ref
     :db/cardinality :db.cardinality/many
     :db.install/_attribute :db.part/db}
@@ -48,7 +49,11 @@
     :db/cardinality :db.cardinality/one
     :db.install/_attribute :db.part/db}])
 
+;; Install the schema
+
 (d/transact conn schema)
+
+;; Add the same coins, but this time with emperors. Note that one of them is uncertain.
 
 (def some-uncertain-coins
   [{:db/id (d/tempid :db.part/user -1)
@@ -73,13 +78,14 @@
 
 (d/transact conn some-uncertain-coins)
 
-
+;; Find all the things that we are uncertain about, and why.
 (pprint
- (q '[:find ?cat-num ?uncertain-thing ?why-uncertain
+ (q '[:find ?cat-num ?uncertain-thing ?value ?why-uncertain
       :where
       [?e :coin/catalogue-number ?cat-num]
       [?e :coin/uncertainty ?u]
       [?u :coin.uncertainty/attribute ?uncertain-att]
       [?uncertain-att :db/ident ?uncertain-thing]
+      [?e ?uncertain-att ?value]
       [?u :coin.uncertainty/description ?why-uncertain]]
     (db conn)))
